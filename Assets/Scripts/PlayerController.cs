@@ -3,8 +3,11 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    // components to get
     private Animator anim;
     private Rigidbody2D rb;
+    private PlayerInput pi;
+
     private Vector2 moveInput;
     private bool facingRight = true;
     private bool jumpPressed = false;
@@ -22,12 +25,20 @@ public class PlayerController : MonoBehaviour
     public float groundCheckRadius = 0.25f;
     public float fallGravityScale = 2f; // update gravity to 200%
 
+    [Header("Shooting")]
+    public Transform firePoint;
+    public GameObject fire; // our prefab to fire
+
+    private float attackRate = 0.5f;
+    private float nextAttackTime = 0;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        pi = GetComponent<PlayerInput>();
     }
 
     void OnMove(InputValue movementValue)
@@ -42,10 +53,10 @@ public class PlayerController : MonoBehaviour
         CheckGrounded(); // will update the isGrounded boolean
     }
 
-    void OnAttack(InputValue attackValue)
+/*    void OnAttack(InputValue attackValue)
     {
         anim.SetTrigger("isShooting"); // sets to true then false automatically
-    }
+    }*/
 
     // Update is called once per frame
     void Update()
@@ -61,6 +72,15 @@ public class PlayerController : MonoBehaviour
         {
             Flip();
             facingRight = true;
+        }
+
+        // event polling
+        float isAttackHeld = pi.actions["Attack"].ReadValue<float>(); //1 means held, 0 means not held
+        if (isAttackHeld > 0 && Time.time >= nextAttackTime)
+        {
+            nextAttackTime = Time.time + attackRate; //set this to future allow attack time
+            anim.SetTrigger("isShooting");
+            Instantiate(fire, firePoint.position, facingRight ? firePoint.rotation : Quaternion.Euler(0, 180, 0));
         }
     }
 
@@ -118,6 +138,14 @@ public class PlayerController : MonoBehaviour
     {
         Gizmos.color = Color.yellow;
         Gizmos.DrawSphere(groundCheck.position, groundCheckRadius);
+    }
+
+    public Vector2 GetDirection()
+    {
+        if (facingRight)
+            return Vector2.right;
+        else
+            return Vector2.left;
     }
 
 }

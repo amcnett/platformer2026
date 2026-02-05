@@ -25,11 +25,13 @@ public class FireController : MonoBehaviour
         Destroy(gameObject); //don't use "this" as "this" is the component/script
     }
 
-    // Update is called once per frame
-    void FixedUpdate()
+    void OnTriggerEnter2D(Collider2D collision)
     {
-        
+        if (collision.gameObject.CompareTag("enemy"))
+        {
+            Destroy(gameObject);
+        }
     }
 
-    
+
 }

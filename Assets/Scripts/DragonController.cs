@@ -9,9 +9,12 @@ public class DragonController : MonoBehaviour
     //private Vector2 pointB;
     //public float speed = 2f;
     //public float duration = 3f;
+    private float health = 100;
 
     public float distance = 3f;
-    public float movement = .25f;
+    public float distanceCheck = 2f;
+    public float movement = 1f;
+    public LayerMask ground;
     //private int counter = 5; // how many times to move in a give direction
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -37,16 +40,28 @@ public class DragonController : MonoBehaviour
             transform.Translate(new Vector2(distance * movement, 0));
             //counter--;
 
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, 1f);
-            Debug.DrawRay(transform.position, Vector2.down, Color.red, 1f); //draws line in scene for 1 second
+            RaycastHit2D hitDown = Physics2D.Raycast(transform.position, Vector2.down, distanceCheck, ground); // we hit floor below
+            RaycastHit2D hitLeft = Physics2D.Raycast(transform.position, Vector2.left, distanceCheck, ground); // we hit a wall to the left
+            Debug.DrawRay(transform.position, Vector2.left * distanceCheck, Color.red, 1f); //draws line in scene for 1 second
+            Debug.DrawRay(transform.position, Vector2.right * distanceCheck, Color.red, 1f); //draws line in scene for 1 second
 
-            if (!hit) // if we moved 5 times
+            if (!hitDown || hitLeft) //  for when we used lerp method -> if we moved 5 times
             {
                 movement *= -1; // now move in opposite direction
-                //counter = 5; // reset our counter
+                //counter = 5; // reset our counter (used for lerp method)
             }
 
             yield return new WaitForSeconds(0.25f);
         }
     }
+
+    void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.CompareTag("fire"))
+            health += -25;
+
+        if (health <= 0)
+            Destroy(gameObject);
+    }
+
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
@@ -8,6 +9,8 @@ public class PlayerController : MonoBehaviour
     private Animator anim;
     private Rigidbody2D rb;
     private PlayerInput pi;
+
+    private float health = 100f;
 
     private Vector2 moveInput;
     private bool facingRight = true;
@@ -29,10 +32,11 @@ public class PlayerController : MonoBehaviour
     [Header("Shooting")]
     public Transform firePoint;
     public GameObject fire; // our prefab to fire
-
     private float attackRate = 0.5f;
     private float nextAttackTime = 0;
 
+    [Header("UI")]
+    public TMP_Text winMessage;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -153,10 +157,38 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("boundary"))
         {
-            GameManager.instance.DecreaseLives();
-            Debug.Log("Lives: " + GameManager.instance.GetLives());
-            SceneManager.LoadScene(0);
+            Die();
         }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("enemy"))
+        {
+            health -= 25;
+
+            if (health <= 0)
+            {
+                //pi.enabled = false;
+                pi.DeactivateInput();
+                rb.constraints = RigidbodyConstraints2D.FreezeAll;
+                anim.SetBool("isDead", true);
+                Invoke("Die", 2f);
+            }
+        }
+        else if (collision.gameObject.CompareTag("console"))
+        {
+            winMessage.enabled = true;
+        }
+
+
+    }
+
+    void Die()
+    {
+        GameManager.instance.DecreaseLives();
+        Debug.Log("Lives: " + GameManager.instance.GetLives());
+        SceneManager.LoadScene(0);
     }
 
 }
